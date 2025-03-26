@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 class ActionRecognitionLSTM(nn.Module):
-    def __init__(self, input_size=512, hidden_size=256, num_layers=1, num_classes=6):
+    def __init__(self, input_size=536, hidden_size=256, num_layers=1, num_classes=6):
         super(ActionRecognitionLSTM, self).__init__()
 
         # batch_first=True: 입력 텐서의 차원 순서가 (배치, 시퀀스 길이, 특징 차원)임을 나타낸다.
@@ -22,7 +22,7 @@ class ActionRecognitionLSTM(nn.Module):
 
 if __name__ == "__main__":
     model = ActionRecognitionLSTM()
-    sample_input = torch.randn(4, 30, 512)
+    sample_input = torch.randn(4, 30, 536)
     output = model(sample_input)
     # output.shape = torch.Size([4, 6])
     print(f"{output.shape = }")

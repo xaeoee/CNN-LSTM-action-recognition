@@ -13,7 +13,7 @@ root_dir = "processed_videos"
 _, _, test_loader = get_dataloaders(root_dir, batch_size=BATCH_SIZE)
 
 cnn = ResNetFeatureExtractor(feature_dim=512).to(DEVICE)
-lstm = ActionRecognitionLSTM(input_size=512, hidden_size=256, num_layers=2, num_classes=6).to(DEVICE)
+lstm = ActionRecognitionLSTM(input_size=512, hidden_size=256, num_layers=1, num_classes=6).to(DEVICE)
 
 checkpoint = torch.load("action_recognition.pth")
 cnn.load_state_dict(checkpoint['cnn_state_dict'])

@@ -7,7 +7,7 @@ from resnet import ResNetFeatureExtractor
 from lstm import ActionRecognitionLSTM
 from tqdm import tqdm 
 
-EPOCHS = 10
+EPOCHS = 5
 BATCH_SIZE = 8
 LEARNING_RATE = 1e-4
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -16,7 +16,7 @@ root_dir = "processed_videos"
 train_loader, val_loader, test_loader = get_dataloaders(root_dir, batch_size=BATCH_SIZE)
 
 cnn = ResNetFeatureExtractor(feature_dim=512).to(DEVICE)
-lstm = ActionRecognitionLSTM(input_size=512, hidden_size=256, num_layers=1, num_classes=6).to(DEVICE)
+lstm = ActionRecognitionLSTM(input_size=536, hidden_size=256, num_layers=1, num_classes=6).to(DEVICE)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.AdamW(list(cnn.parameters()) + list(lstm.parameters()), lr=LEARNING_RATE)
@@ -37,11 +37,25 @@ def train():
 
             batch_size, seq_len, C, H, W = videos.shape  # (batch, 30, 3, 224, 224)
             
-            # CNN을 통과한 Feature 저장할 공간
-            features = torch.zeros(batch_size, seq_len, 512).to(DEVICE)
+            # # CNN을 통과한 Feature 저장할 공간
+            # features = torch.zeros(batch_size, seq_len, 512).to(DEVICE)
 
-            for t in range(seq_len):
-                features[:, t, :] = cnn(videos[:, t, :, :, :])  # CNN 통과
+            # for t in range(seq_len):
+            #     features[:, t, :] = cnn(videos[:, t, :, :, :])  # CNN 통과
+
+            # CNN 연산 최적화 (reshape 후 병렬 처리)
+            videos_reshaped = videos.view(batch_size * seq_len, C, H, W)  # (batch*seq, 3, 224, 224)
+            features_reshaped = cnn(videos_reshaped)  # (batch*seq, 512)
+            features = features_reshaped.view(batch_size, seq_len, -1)  # (batch, seq, 512)
+
+
+            # 예: shape = (batch, seq_len, 50)
+            # landmark_features = get_landmark_features(batch_indices)  # 직접 불러오는 함수 or Dataset 내에 포함
+
+
+            # combined_features = torch.cat([features, landmark_features], dim=-1)  # (batch, seq_len, cnn_dim + landmark_dim)
+
+
 
             # LSTM 통과
             # 8 x 6
@@ -50,8 +64,8 @@ def train():
             # Loss 계산
             loss = criterion(outputs, labels)
             optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+            loss.backward() 
+            optimizer.step() #파라미터 업데이트
 
             # Accuracy 계산
             total_loss += loss.item()

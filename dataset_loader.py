@@ -12,28 +12,24 @@ class VideoDataset(Dataset):
 
         for label_idx, class_name in enumerate(self.class_labels):
             class_folder = os.path.join(root_dir, class_name)
+            print(class_folder)
             if not os.path.isdir(class_folder):
                 continue  # 폴더가 아니면 스킵
             
             video_files = sorted([f for f in os.listdir(class_folder) if f.endswith('.pt')])
             for video_file in video_files:
                 video_path = os.path.join(class_folder, video_file)
-                self.data.append((video_path, label_idx))  # (파일 경로, 라벨) 저장
+                self.data.append((video_path, label_idx))  # (파일 경로, 라벨) 저장 튜플형태
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
         # 매 iteration 마다 호출됨
-        # 
 
-
-        video_path, label = self.data[idx]
+        video_path, label = self.data[idx] #self.data는 (비디오 경로, 라벨 인덱스)를 튜플 형태로 가지고있는 리스트
         video_tensor = torch.load(video_path)  # (30, 3, 224, 224) 형태 유지
 
-        # print(f"📌 __getitem__ 호출됨: idx={idx}, label={label}")
-
-        
         if self.transform:
             video_tensor = self.transform(video_tensor)
 
