@@ -26,3 +26,5 @@ if __name__ == "__main__":
     output = model(sample_input)
     # output.shape = torch.Size([30, 512])
     print(f"{output.shape = }")
+
+    
